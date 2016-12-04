@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System;
 using System.Text;
@@ -7,7 +6,6 @@ using JetBrains.Annotations;
 
 namespace Shouldly
 {
-    [DebuggerStepThrough]
     [ShouldlyMethods]
     public static class ShouldSatisfyAllConditionsTestExtensions
     {
@@ -37,24 +35,27 @@ namespace Shouldly
             if (errorMessages.Any())
             {
                 var errorMessageString = BuildErrorMessageString(errorMessages);
-                throw new ShouldAssertException(new ExpectedShouldlyMessage(errorMessageString, customMessage).ToString());
+                throw new ShouldAssertException(new ExpectedActualShouldlyMessage(errorMessageString, actual, customMessage).ToString());
             }
         }
 
-        private static string BuildErrorMessageString(IEnumerable<Exception> errorMessages)
+        static string BuildErrorMessageString(IEnumerable<Exception> errorMessages)
         {
             var errorCount = 1;
             var sb = new StringBuilder();
             foreach (var errorMessage in errorMessages)
             {
-                sb.AppendLine(string.Format("--------------- Error {0} ---------------", errorCount));
-                sb.AppendLine(errorMessage.Message.StripLambdaExpressionSyntax());
+                sb.AppendLine($"--------------- Error {errorCount} ---------------");
+                var lines = errorMessage.Message.Replace("\r\n", "\n").Split('\n');
+                var paddedLines = lines.Select(l => string.IsNullOrEmpty(l) ? l : "    " + l);
+                var value = string.Join("\r\n", paddedLines.ToArray());
+                sb.AppendLine(value);
                 sb.AppendLine();
                 errorCount++;
             }
             sb.AppendLine("-----------------------------------------");
 
-            return sb.ToString();
+            return sb.ToString().TrimEnd();
         }
     }
 }

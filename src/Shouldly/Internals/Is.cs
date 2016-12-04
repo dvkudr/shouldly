@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+#if NewReflection
+using System.Reflection;
+#endif
+
 namespace Shouldly
 {
     internal static class Is
@@ -175,7 +179,11 @@ namespace Shouldly
         {
             if (o == null)
                 return false;
+#if NewReflection
+            return expected.GetTypeInfo().IsAssignableFrom(o.GetType().GetTypeInfo());
+#else
             return expected.IsInstanceOfType(o);
+#endif
         }
 
         public static bool StringMatchingRegex(string actual, string regexPattern)
@@ -188,7 +196,7 @@ namespace Shouldly
             if (actual == null)
                 return false;
 
-            return actual.IndexOf(expected, StringComparison.InvariantCultureIgnoreCase) != -1;
+            return actual.IndexOf(expected, StringComparison.OrdinalIgnoreCase) != -1;
         }
 
         public static bool StringContainingUsingCaseSensitivity(string actual, string expected)
@@ -196,7 +204,7 @@ namespace Shouldly
             if (actual == null)
                 return false;
 
-            return actual.IndexOf(expected, StringComparison.InvariantCulture) != -1;
+            return actual.IndexOf(expected, StringComparison.Ordinal) != -1;
         }
 
 
@@ -207,7 +215,7 @@ namespace Shouldly
 
             if (caseSensitivity == Case.Insensitive)
             {
-                return actual.EndsWith(expected, StringComparison.InvariantCultureIgnoreCase);
+                return actual.EndsWith(expected, StringComparison.OrdinalIgnoreCase);
             }
 
             return actual.EndsWith(expected);
@@ -220,7 +228,7 @@ namespace Shouldly
 
             if (caseSensitivity == Case.Insensitive)
             {
-                return actual.StartsWith(expected, StringComparison.InvariantCultureIgnoreCase);
+                return actual.StartsWith(expected, StringComparison.OrdinalIgnoreCase);
             }
 
             return actual.StartsWith(expected);
@@ -230,10 +238,35 @@ namespace Shouldly
         {
             if (caseSensitivity == Case.Insensitive)
             {
-                return StringComparer.InvariantCultureIgnoreCase.Equals(actual, expected);
+                return StringComparer.OrdinalIgnoreCase.Equals(actual, expected);
             }
 
-            return StringComparer.InvariantCulture.Equals(actual, expected);
+            return StringComparer.Ordinal.Equals(actual, expected);
+        }
+
+        public static bool EnumerableStringEqualWithCaseSensitivity(IEnumerable<string> actual, IEnumerable<string> expected, Case caseSensitivity)
+        {
+            var expectedEnum = expected.GetEnumerator();
+            var actualEnum = actual.GetEnumerator();
+
+            for (; ; )
+            {
+                var expectedHasData = expectedEnum.MoveNext();
+                var actualHasData = actualEnum.MoveNext();
+
+                var bothListsProcessed = !expectedHasData && !actualHasData;
+                if (bothListsProcessed)
+                    return true;
+
+                var listsHaveDifferentLengths = !expectedHasData || !actualHasData;
+                if (listsHaveDifferentLengths)
+                    return false;
+
+                if (!StringEqualWithCaseSensitivity(actualEnum.Current, expectedEnum.Current, caseSensitivity))
+                {
+                    return false;
+                }
+            }
         }
 
         public static bool GreaterThanOrEqualTo<T>(IComparable<T> comparable, T expected)
@@ -241,9 +274,19 @@ namespace Shouldly
             return Compare(comparable, expected) >= 0;
         }
 
+        public static bool GreaterThanOrEqualTo<T>(T actual, T expected, IComparer<T> comparer)
+        {
+            return Compare(actual, expected, comparer) >= 0;
+        }
+
         public static bool LessThanOrEqualTo<T>(IComparable<T> comparable, T expected)
         {
             return Compare(comparable, expected) <= 0;
+        }
+
+        public static bool LessThanOrEqualTo<T>(T actual, T expected, IComparer<T> comparer)
+        {
+            return Compare(actual, expected, comparer) <= 0;
         }
 
         public static bool GreaterThan<T>(IComparable<T> comparable, T expected)
@@ -251,14 +294,32 @@ namespace Shouldly
             return Compare(comparable, expected) > 0;
         }
 
+        public static bool GreaterThan<T>(T actual, T expected, IComparer<T> comparer)
+        {
+            return Compare(actual, expected, comparer) > 0;
+        }
+
         public static bool LessThan<T>(IComparable<T> comparable, T expected)
         {
             return Compare(comparable, expected) < 0;
         }
 
-        private static decimal Compare<T>(IComparable<T> comparable, T expected)
+        public static bool LessThan<T>(T actual, T expected, IComparer<T> comparer)
         {
-            if (!typeof(T).IsValueType)
+            return Compare(actual, expected, comparer) < 0;
+        }
+
+        static decimal Compare<T>(T actual, T expected, IComparer<T> comparer)
+        {
+            return comparer.Compare(actual, expected);
+        }
+        static decimal Compare<T>(IComparable<T> comparable, T expected)
+        {
+#if NewReflection
+            if (!typeof(T).GetTypeInfo().IsValueType)
+#else
+                if (!typeof(T).IsValueType)
+#endif
             {
                 // ReSharper disable CompareNonConstrainedGenericWithNull
                 if (comparable == null)

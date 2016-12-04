@@ -1,31 +1,84 @@
 ﻿using System;
-using Shouldly.Tests.TestHelpers;
+using Shouldly.Tests.Strings;
+using Xunit;
 
 namespace Shouldly.Tests.ShouldBe.WithTolerance
 {
-    public class DateTimeScenario : ShouldlyShouldTestScenario
+    public class DateTimeScenario
     {
-        protected override void ShouldThrowAWobbly()
+        [Fact]
+        public void DateTimeScenarioShouldFail()
         {
             var date = new DateTime(2000, 6, 1);
-            date.ShouldBe(new DateTime(2000, 6, 1, 1, 0, 1), TimeSpan.FromHours(1), "Some additional context");
+            var dateString = date.ToString("o");
+            var expected = new DateTime(2000, 6, 1, 1, 0, 1);
+            var expectedString = expected.ToString("o");
+            Verify.ShouldFail(() =>
+date.ShouldBe(expected, TimeSpan.FromHours(1), "Some additional context"),
+
+errorWithSource:
+$@"date
+    should be within
+01:00:00
+    of
+{expectedString}
+    but was
+{dateString}
+
+Additional Info:
+    Some additional context",
+
+errorWithoutSource:
+$@"{dateString}
+    should be within
+01:00:00
+    of
+{expectedString}
+    but was not
+
+Additional Info:
+    Some additional context");
         }
 
-        protected override string ChuckedAWobblyErrorMessage
+        [Fact]
+        public void DateTimeFromTicksScenarioShouldFailAndShowDetailedDateDifference()
         {
-            get 
-            {
-                return String.Format("date should be within {0} of {1} but was {2}" +
-                                     "Additional Info:" +
-                                     "Some additional context",
-                    TimeSpan.FromHours(1), new DateTime(2000, 6, 1, 1, 0, 1), new DateTime(2000, 6, 1)); 
-            }
+            var date = new DateTime(635961688375100000);
+            var dateString = date.ToString("o");
+            var expected = new DateTime(635961688375106000);
+            var expectedString = expected.ToString("o");
+            
+            Verify.ShouldFail(() =>
+date.ShouldBe(expected, "Some additional context"),
+
+
+errorWithSource:
+$@"date
+    should be
+{expectedString}
+    but was
+{dateString}
+
+Additional Info:
+    Some additional context",
+
+errorWithoutSource:
+$@"{dateString}
+    should be
+{expectedString}
+    but was not
+
+Additional Info:
+    Some additional context");
         }
 
-        protected override void ShouldPass()
+
+        [Fact]
+        public void ShouldPass()
         {
             var date = new DateTime(2000, 6, 1);
             date.ShouldBe(new DateTime(2000, 6, 1, 1, 0, 1), TimeSpan.FromHours(1.5d));
-        }
+        }          
+
     }
 }

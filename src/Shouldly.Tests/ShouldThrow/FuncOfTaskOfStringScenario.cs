@@ -1,43 +1,95 @@
-﻿#if net40
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Shouldly.Tests.TestHelpers;
+using Shouldly.Tests.Strings;
+using Xunit;
 
 namespace Shouldly.Tests.ShouldThrow
 {
-    public class FuncOfTaskOfStringScenario : ShouldlyShouldTestScenario
+    public class FuncOfTaskOfStringScenario
     {
-        protected override void ShouldThrowAWobbly()
+        [Fact]
+        public void FuncOfTaskOfStringScenarioShouldFail()
         {
-            Should.Throw<InvalidOperationException>(() =>
-            {
-                var task = Task.Factory.StartNew(() => "Foo",
-                    CancellationToken.None, TaskCreationOptions.None,
-                    TaskScheduler.Default);
-                return task;
-            }, "Some additional context");
-        }
+            var task = Task.Factory.StartNew(() => "Foo",
+                            CancellationToken.None, TaskCreationOptions.None,
+                            TaskScheduler.Default);
 
-        protected override string ChuckedAWobblyErrorMessage
-        {
-            get { return @"Should throw System.InvalidOperationException but does not
+            Verify.ShouldFail(() =>
+task.ShouldThrow<InvalidOperationException>("Some additional context"),
+
+errorWithSource:
+@"Task `task`
+    should throw
+System.InvalidOperationException
+    but did not
+
 Additional Info:
-Some additional context"; }
+    Some additional context",
+
+errorWithoutSource:
+@"Task
+    should throw
+System.InvalidOperationException
+    but did not
+
+Additional Info:
+    Some additional context");
         }
 
-        protected override void ShouldPass()
+        [Fact]
+        public void FuncOfTaskOfStringScenarioShouldFail_ExceptionTypePassedIn()
         {
-            var ex = Should.Throw<InvalidOperationException>(() =>
-            {
-                var task = Task.Factory.StartNew<string>(() => { throw new InvalidOperationException(); },
+            var task = Task.Factory.StartNew(() => "Foo",
+                            CancellationToken.None, TaskCreationOptions.None,
+                            TaskScheduler.Default);
+
+            Verify.ShouldFail(() =>
+task.ShouldThrow("Some additional context", typeof(InvalidOperationException)),
+
+errorWithSource:
+@"Task `task`
+    should throw
+System.InvalidOperationException
+    but did not
+
+Additional Info:
+    Some additional context",
+
+errorWithoutSource:
+@"Task
+    should throw
+System.InvalidOperationException
+    but did not
+
+Additional Info:
+    Some additional context");
+        }
+
+        [Fact]
+        public void ShouldPass()
+        {
+            var task = Task.Factory.StartNew<string>(() => { throw new InvalidOperationException(); },
                     CancellationToken.None, TaskCreationOptions.None,
                     TaskScheduler.Default);
-                return task;
-            });
+
+            var ex = task.ShouldThrow<InvalidOperationException>();
+
+            ex.ShouldNotBe(null);
+            ex.ShouldBeOfType<InvalidOperationException>();
+        }
+
+        [Fact]
+        public void ShouldPass_ExceptionTypePassedIn()
+        {
+            var task = Task.Factory.StartNew<string>(() => { throw new InvalidOperationException(); },
+                    CancellationToken.None, TaskCreationOptions.None,
+                    TaskScheduler.Default);
+
+            var ex = task.ShouldThrow(typeof(InvalidOperationException));
+
             ex.ShouldNotBe(null);
             ex.ShouldBeOfType<InvalidOperationException>();
         }
     }
 }
-#endif

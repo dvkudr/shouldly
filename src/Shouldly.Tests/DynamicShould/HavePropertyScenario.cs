@@ -1,32 +1,37 @@
-﻿#if net40
-using System.Dynamic;
-using Shouldly.Tests.TestHelpers;
+﻿using System.Dynamic;
+using Shouldly.Tests.Strings;
+using Xunit;
 
-namespace Shouldly.Tests.DynamicShouldTests
+namespace Shouldly.Tests.DynamicShould
 {
-    public class HavePropertyScenario : ShouldlyShouldTestScenario
+    public class HavePropertyScenario
     {
-        protected override void ShouldPass()
-        {
-            dynamic testDynamicObject = new ExpandoObject();
-            testDynamicObject.Foo = "FooPropertyValue";
-            DynamicShould.HaveProperty(testDynamicObject, "Foo");
-        }
-
-        protected override void ShouldThrowAWobbly()
+        [Fact]
+        public void HavePropertyScenarioShouldFail()
         {
             dynamic testDynamicObject = new ExpandoObject();
             testDynamicObject.Bar = "BarPropertyValue";
-            DynamicShould
-                .HaveProperty(testDynamicObject, "foo", "Some additional context");
+            Verify.ShouldFail(() => Shouldly.DynamicShould.HaveProperty(testDynamicObject, "foo", "Some additional context"),
+
+errorWithSource:
+@"Dynamic object ""testDynamicObject"" should contain property ""foo"" but does not." + @"
+
+Additional Info:
+    Some additional context",
+
+errorWithoutSource:
+@"Dynamic object should contain property ""foo"" but does not." + @"
+
+Additional Info:
+    Some additional context");
         }
 
-        protected override string ChuckedAWobblyErrorMessage
+        [Fact]
+        public void ShouldPass()
         {
-            get { return "Dynamic object \"testDynamicObject\" should contain property \"foo\" but does not." + @"
-Additional Info:
-Some additional context"; }
+            dynamic testDynamicObject = new ExpandoObject();
+            testDynamicObject.Foo = "FooPropertyValue";
+            Shouldly.DynamicShould.HaveProperty(testDynamicObject, "Foo");
         }
     }
 }
-#endif

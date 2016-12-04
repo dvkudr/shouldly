@@ -1,14 +1,16 @@
-﻿#if net40
+﻿#if Dynamic
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using JetBrains.Annotations;
 
+#if NewReflection
+using System.Reflection;
+#endif
+
 namespace Shouldly
 {
-    [DebuggerStepThrough]
     [ShouldlyMethods]
     public static class DynamicShould
     {
@@ -38,7 +40,8 @@ namespace Shouldly
             else
             {
                 var dynamicAsObject = (object)dynamicTestObject;
-                if (!dynamicAsObject.GetType().GetProperties().Select(x => x.Name).Contains(propertyName))
+                var properties = dynamicAsObject.GetType().GetProperties();
+                if (!properties.Select(x => x.Name).Contains(propertyName))
                 {
                     throw new ShouldAssertException(new ExpectedShouldlyMessage(propertyName, customMessage).ToString());
                 }

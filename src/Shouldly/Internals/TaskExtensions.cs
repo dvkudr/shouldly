@@ -1,4 +1,4 @@
-﻿#if net40
+﻿#if Async
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,9 +37,9 @@ namespace Shouldly
             // Set up a timer to complete after the specified timeout period
             var timer = new Timer(_ =>
             {
-                // Fault our proxy Task with a TimeoutException
-                tcs.TrySetException(new TimeoutException());
-            }, null, (long)timeout.TotalMilliseconds, Timeout.Infinite);
+                // Fault our proxy Task with a ShouldlyTimeoutException
+                tcs.TrySetException(new ShouldlyTimeoutException());
+            }, null, (int)timeout.TotalMilliseconds, Timeout.Infinite);
 
             // Wire up the logic for what happens when source task completes
             task.ContinueWith(antecedent =>

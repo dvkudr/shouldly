@@ -2,8 +2,12 @@
 
 namespace Shouldly
 {
+#if Serializable
     [Serializable]
-    internal class ShouldAssertException : ChuckedAWobbly
+#endif
+#pragma warning disable 618
+    public class ShouldAssertException : ChuckedAWobbly
+#pragma warning restore 618
     {
         public ShouldAssertException(string message) : base(message)
         {

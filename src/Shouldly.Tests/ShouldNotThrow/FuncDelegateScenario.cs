@@ -1,28 +1,45 @@
 ﻿using System;
-using Shouldly.Tests.TestHelpers;
+using Shouldly.Tests.Strings;
+using Xunit;
 
 namespace Shouldly.Tests.ShouldNotThrow
 {
-    public class FuncDelegateScenario : ShouldlyShouldTestScenario
+    public class FuncDelegateScenario
     {
-        protected override void ShouldThrowAWobbly()
-        {
-            Should.NotThrow(new Func<int>(() => { throw new InvalidOperationException(); }), "Some additional context");
-        }
 
-        protected override string ChuckedAWobblyErrorMessage
+        [Fact]
+        public void FuncDelegateScenarioShouldFail()
         {
-            get
-            {
-                return @"Should not throw System.InvalidOperationException but does
+            var action = new Func<int>(() => { throw new InvalidOperationException(); });
+            Verify.ShouldFail(() =>
+action.ShouldNotThrow("Some additional context"),
+
+errorWithSource:
+@"`action()`
+    should not throw but threw
+System.InvalidOperationException
+    with message
+""Operation is not valid due to the current state of the object.""
+
 Additional Info:
-Some additional context";
-            }
+    Some additional context",
+
+errorWithoutSource:
+@"delegate
+    should not throw but threw
+System.InvalidOperationException
+    with message
+""Operation is not valid due to the current state of the object.""
+
+Additional Info:
+    Some additional context");
         }
 
-        protected override void ShouldPass()
+        [Fact]
+        public void ShouldPass()
         {
-            Should.NotThrow(() => 1).ShouldBe(1);
+            var action = new Func<int>(() => 1);
+            action.ShouldNotThrow().ShouldBe(1);
         }
     }
 }

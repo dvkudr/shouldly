@@ -1,14 +1,15 @@
-#if net40
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 
 namespace Shouldly.Tests.ShouldNotThrow
 {
     public class FuncOfTaskOfTWithTimeoutScenario
+
     {
-        [Test]
+
+        [Fact]
         public void ShouldThrowAWobbly()
         {
             var task = Task.Factory.StartNew(() =>
@@ -18,33 +19,29 @@ namespace Shouldly.Tests.ShouldNotThrow
             },
                 CancellationToken.None, TaskCreationOptions.None,
                 TaskScheduler.Default);
-            var ex = Should.Throw<ShouldCompleteInException>(() => 
-                Should.NotThrow(() => task, TimeSpan.FromSeconds(0.5), "Some additional context"));
+
+            var ex = Should.Throw<ShouldCompleteInException>(() =>
+                task.ShouldNotThrow(TimeSpan.FromSeconds(0.5), "Some additional context"));
+
             ex.Message.ShouldContainWithoutWhitespace(ChuckedAWobblyErrorMessage);
         }
 
-        protected string ChuckedAWobblyErrorMessage
-        {
-            get
-            {
-                return @"Task
+        string ChuckedAWobblyErrorMessage => @"Task
         should complete in
     00:00:00.5000000
         but did not
     Additional Info:
     Some additional context";
-            }
-        }
 
-        [Test]
+        [Fact]
         public void ShouldPass()
         {
             var task = Task.Factory.StartNew(() => "foo",
                 CancellationToken.None, TaskCreationOptions.None,
                 TaskScheduler.Default);
-            var result = Should.NotThrow(() => task, TimeSpan.FromSeconds(0.5));
+
+            var result = task.ShouldNotThrow(TimeSpan.FromSeconds(0.5));
             result.ShouldBe("foo");
         }
     }
 }
-#endif

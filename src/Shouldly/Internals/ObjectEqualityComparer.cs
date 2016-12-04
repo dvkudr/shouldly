@@ -1,8 +1,8 @@
-﻿using System;
-
-namespace Shouldly
+﻿namespace Shouldly
 {
-    [Serializable]
+#if Serializable
+    [System.Serializable]
+#endif
     class ObjectEqualityComparer<T> : System.Collections.Generic.EqualityComparer<T>
     {
         public override bool Equals(T x, T y)

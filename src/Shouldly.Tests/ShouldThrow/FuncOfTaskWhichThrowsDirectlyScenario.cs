@@ -1,18 +1,59 @@
-﻿#if net40
-using System;
+﻿using System;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 
 namespace Shouldly.Tests.ShouldThrow
 {
     public class FuncOfTaskWhichThrowsDirectlyScenario
+   
     {
-        [Test]
+
+    [Fact]
         public void ShouldPass()
         {
             // ReSharper disable once RedundantDelegateCreation
-            Should.Throw<InvalidOperationException>(new Func<Task>(() => { throw new InvalidOperationException(); }));
+            var task = new Func<Task>(() => { throw new InvalidOperationException(); });
+            task.ShouldThrow<InvalidOperationException>();
+        }
+
+[Fact]
+        public void ShouldPass_ExceptionTypePassedIn()
+        {
+            // ReSharper disable once RedundantDelegateCreation
+            var task = new Func<Task>(() => { throw new InvalidOperationException(); });
+            task.ShouldThrow(typeof(InvalidOperationException));
+        }
+
+
+        [Fact]
+        public void ShouldPassTimeoutException()
+        {
+            var task = new Func<Task>(() => { throw new TimeoutException(); });
+            task.ShouldThrow<TimeoutException>();
+        }
+
+
+        [Fact]
+        public void ShouldPassTimeoutException_ExceptionTypePassedIn()
+        {
+            var task = new Func<Task>(() => { throw new TimeoutException(); });
+            task.ShouldThrow(typeof(TimeoutException));
+        }
+
+        
+        [Fact]
+        public void ShouldPassTimeoutExceptionAsync()
+        {
+            var task = new Func<Task>(async () => { throw new TimeoutException(); });
+            task.ShouldThrow<TimeoutException>();
+        }
+
+       
+        [Fact]
+        public void ShouldPassTimeoutExceptionAsync_ExceptionTypePassedIn()
+        {
+            var task = new Func<Task>(async () => { throw new TimeoutException(); });
+            task.ShouldThrow(typeof(TimeoutException));
         }
     }
 }
-#endif

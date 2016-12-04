@@ -23,7 +23,7 @@ namespace Shouldly
             var strippedActual = actual.Quotify().StripWhitespace();
             var strippedExpected = (expected ?? "NULL").ToString().Quotify().StripWhitespace();
 
-            strippedActual.AssertAwesomely(v => Is.Equal(v, strippedExpected), actual, expected, customMessage);
+            strippedActual.AssertAwesomely(v => v.Contains(strippedExpected), actual, expected, customMessage);
         }
 
         public static void ShouldContain(this string actual, string expected)
@@ -108,6 +108,21 @@ namespace Shouldly
         public static void ShouldMatch(this string actual, string regexPattern, [InstantHandle] Func<string> customMessage)
         {
             actual.AssertAwesomely(v => Is.StringMatchingRegex(v, regexPattern), actual, regexPattern, customMessage);
-        } 
+        }
+
+        public static void ShouldNotMatch(this string actual, string regexPattern)
+        {
+            ShouldNotMatch(actual, regexPattern, () => null);
+        }
+
+        public static void ShouldNotMatch(this string actual, string regexPattern, string customMessage)
+        {
+            ShouldNotMatch(actual, regexPattern, () => customMessage);
+        }
+
+        public static void ShouldNotMatch(this string actual, string regexPattern, [InstantHandle] Func<string> customMessage)
+        {
+            actual.AssertAwesomely(v => !Is.StringMatchingRegex(v, regexPattern), actual, regexPattern, customMessage);
+        }
     }
 }

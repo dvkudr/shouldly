@@ -1,44 +1,53 @@
-﻿#if net40
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Shouldly.Tests.TestHelpers;
+using Shouldly.Tests.Strings;
+using Xunit;
 
 namespace Shouldly.Tests.ShouldNotThrow
 {
-    public class FuncOfTaskScenario : ShouldlyShouldTestScenario
+    public class FuncOfTaskScenario
     {
-        protected override void ShouldThrowAWobbly()
-        {
-            Should.NotThrow(() =>
-            {
-                var task = Task.Factory.StartNew(() => { throw new RankException(); },
-                    CancellationToken.None, TaskCreationOptions.None,
-                    TaskScheduler.Default);
-                return task;
-            }, "Some additional context");
-        }
 
-        protected override string ChuckedAWobblyErrorMessage
+        [Fact]
+        public void FuncOfTaskScenarioShouldFail()
         {
-            get
-            {
-                return @"Should not throw System.RankException but does
+            var task = Task.Factory.StartNew(() => { throw new RankException(); },
+                            CancellationToken.None, TaskCreationOptions.None,
+                            TaskScheduler.Default);
+
+            Verify.ShouldFail(() =>
+            task.ShouldNotThrow("Some additional context"),
+
+errorWithSource:
+@"Task `task`
+    should not throw but threw
+System.RankException
+    with message
+""Attempted to operate on an array with the incorrect number of dimensions.""
+
 Additional Info:
-Some additional context";
-            }
+    Some additional context",
+
+errorWithoutSource:
+@"Task
+    should not throw but threw
+System.RankException
+    with message
+""Attempted to operate on an array with the incorrect number of dimensions.""
+
+Additional Info:
+    Some additional context");
         }
 
-        protected override void ShouldPass()
+        [Fact]
+        public void ShouldPass()
         {
-            Should.NotThrow(() =>
-            {
-                var task = Task.Factory.StartNew(() => { },
+            var task = Task.Factory.StartNew(() => { },
                     CancellationToken.None, TaskCreationOptions.None,
                     TaskScheduler.Default);
-                return task;
-            });
+
+            task.ShouldNotThrow();
         }
     }
 }
-#endif
